@@ -512,59 +512,66 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
         C = T(1:3,1:3);
         r = - (C') *T(1:3,4);
         
-        % Step 2: build the cost function of the previously best T matrix
-        for pt_index = 1 : length(bestinliers)
-        % 2.1  Build the covariance matrix for current and next frame pt
-        % 2.1.1 Build the Jacobian matrix of the inverse camera model for
-        % this point
-        % Current frame
-        ul_1 = ul_cur(bestinliers(pt_index),1);
-        vl_1 = vl_cur(bestinliers(pt_index),1);
-        ur_1 = ur_cur(bestinliers(pt_index),1);
-        vr_1 = vr_cur(bestinliers(pt_index),1);
-       
-        % next frame
-        ul_2 = ul_next(bestinliers(pt_index),1);
-        vl_2 = vl_next(bestinliers(pt_index),1);
-        ur_2 = ur_next(bestinliers(pt_index),1);
-        vr_2 = vr_next(bestinliers(pt_index),1);
+        % Define the optimization matrices
+        nl_A = zeros(6, 6); % variable to store left hand side A matrix
+        nl_B = zeros(6, 1); % variable to store RHS b vector
         
-        % note: fu = fv, only  one variable stored: focal
-        % deri. of inv. stereo cam. model using this pt as operation pt
-        G_cur = (baseline / (ul_1 - ur_1)^2) .* ...
+        % Step 2: build the cost function terms using the previously best T matrix
+        for pt_index = 1 : length(bestinliers)
+            % 2.1  Build the covariance matrix for current and next frame pt
+            % 2.1.1 Build the Jacobian matrix of the inverse camera model for
+            % this point
+            % Current frame
+            ul_1 = ul_cur(bestinliers(pt_index),1);
+            vl_1 = vl_cur(bestinliers(pt_index),1);
+            ur_1 = ur_cur(bestinliers(pt_index),1);
+            vr_1 = vr_cur(bestinliers(pt_index),1);
+       
+            % next frame
+            ul_2 = ul_next(bestinliers(pt_index),1);
+            vl_2 = vl_next(bestinliers(pt_index),1);
+            ur_2 = ur_next(bestinliers(pt_index),1);
+            vr_2 = vr_next(bestinliers(pt_index),1);
+        
+            % note: fu = fv, only  one variable stored: focal
+            % deri. of inv. stereo cam. model using this pt as operation pt
+            G_cur = (baseline / (ul_1 - ur_1)^2) .* ...
                 [-ur_1 + cu,        0,      ul_1-cu,       0; ...
                  -((vl_1+vr_1)/2 - cv), (1/2)*(ul_1 - ur_1), (vl_1+vr_1)/2 - cv, (1/2)*(ul_1-ur_1);...
                  -focal,            0,      focal,         0];
-        % deri. of inv. stereo cam. model of the next frame correspondence
-        G_next = (baseline / (ul_2 - ur_2)^2) .* ...
+            % deri. of inv. stereo cam. model of the next frame correspondence
+            G_next = (baseline / (ul_2 - ur_2)^2) .* ...
                 [-ur_2 + cu,        0,      ul_2-cu,       0; ...
                  -((vl_2+vr_2)/2 - cv), (1/2)*(ul_2 - ur_2), (vl_2+vr_2)/2 - cv, (1/2)*(ul_2-ur_2);...
                  -focal,            0,      focal,         0];
         
-        % 2.1.2 Define the image plane covariance matrix for the operating point
-        Sigma_cur = [Sigma_left, zeros(size(Sigma_right)); ...
-                     zeros(size(Sigma_left)), Sigma_right];
+            % 2.1.2 Define the image plane covariance matrix for the operating point
+            Sigma_cur = [Sigma_left, zeros(size(Sigma_right)); ...
+                         zeros(size(Sigma_left)), Sigma_right];
                  
-        Sigma_next = [Sigma_left, zeros(size(Sigma_right)); ...
-                     zeros(size(Sigma_left)), Sigma_right];         
+            Sigma_next = [Sigma_left, zeros(size(Sigma_right)); ...
+                         zeros(size(Sigma_left)), Sigma_right];         
         
-        % 2.2 compute the combined covariance matrix
-        Sigma_combined = (G_next * Sigma_next * G_next' + C * G_cur * Sigma_cur * G_cur' * C')^(-1);
+            % 2.2 compute the combined covariance matrix
+            Sigma_combined = (G_next * Sigma_next * G_next' + C * G_cur * Sigma_cur * G_cur' * C')^(-1);
             
-        % 2.3 Build the E matrix
-        psi_cur = 
-        E_mat = [C, -]
+            % 2.3 Build the E matrix
+            err_cur = C * ( p1inliers(pt_index) - r );
+            E_mat = [C, -[0, -err_cur(3), err_cur(2); err_cur(3), 0, -err_cur(1); -err_cur(2), err_cur(1), 0] ];
+            
+            % 2.4 Calculate the A and B matrix
+            nl_A = nl_A + E_mat' * Sigma_combined * E_mat;
+            nl_B = nl_B - E_mat' * Sigma_combined * err_cur;
+        end % end of for loop to build the A and B matrix
+            
+        perturbation = nl_A \ nl_B; 
         
+        r = r + perturbation(1:3);
+        C = (eye(3) - [0, -perturbation(6), perturbation(5); perturbation(6), 0, -perturbation(4); -perturbation(5), perturbation(4), 0]) * C;
         
-        nl_A = zeros(6, 6); % variable to store left hand side A matrix
-        nl_B = zeros(6, 1); % variable to store RHS b vector
-        
-        % Build least-square matrix
-        for i = 1 : size(between_order_match{input_index},1)
-        ...
+    end % end of non-linear updating process
     
     
-
 %% Recore results and generating plots
 
     % Store the transformation matrix to the storage variable
