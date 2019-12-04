@@ -25,8 +25,8 @@ clear;
 clc;
 
 % Enter the image folder directory (manully)
-FOLDERDIR_left =  'F:\Course Document\MASc Second Year\MASc 2019 Fall\AER1513\Project\Data_and_Code\2011_09_26_drive_0005_sync\2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
-FOLDERDIR_right = 'F:\Course Document\MASc Second Year\MASc 2019 Fall\AER1513\Project\Data_and_Code\2011_09_26_drive_0005_sync\2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
+FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
+FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
 
 % Count the number of images within the directories
 num_imgfile_left = size(dir([FOLDERDIR_left '/*.png']) ,1);
