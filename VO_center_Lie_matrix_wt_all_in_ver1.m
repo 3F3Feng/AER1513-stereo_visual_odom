@@ -25,12 +25,22 @@ clear;
 clc;
 
 % Enter the image folder directory (manully)
-FOLDERDIR_left =  'F:\Course Document\MASc Second Year\MASc 2019 Fall\AER1513\Project\Data_and_Code\2011_09_26_drive_0095_sync\2011_09_26\2011_09_26_drive_0095_sync\image_00\data';
-FOLDERDIR_right = 'F:\Course Document\MASc Second Year\MASc 2019 Fall\AER1513\Project\Data_and_Code\2011_09_26_drive_0095_sync\2011_09_26\2011_09_26_drive_0095_sync\image_01\data';
+if isunix
+    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0005_sync/image_00/data';
+    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0005_sync/image_01/data';
+else
+    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
+    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
+end
 
 % Count the number of images within the directories
-num_imgfile_left = size(dir([FOLDERDIR_left '/*.png']) ,1);
-num_imgfile_right= size(dir([FOLDERDIR_right '/*.png']),1);
+if isunix
+    num_imgfile_left = size(dir([FOLDERDIR_left '/*.png']) ,1);
+    num_imgfile_right= size(dir([FOLDERDIR_right '/*.png']),1);
+else
+    num_imgfile_left = size(dir([FOLDERDIR_left '\*.png']) ,1);
+    num_imgfile_right= size(dir([FOLDERDIR_right '\*.png']),1);
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,10 +77,17 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     input_index
 
 % Step 1: Load the two stereo images (png images)
-    left_dir = [FOLDERDIR_left '\' num2str(input_index-1,'%010i') '.png'];
-    right_dir = [FOLDERDIR_right '\' num2str(input_index-1,'%010i') '.png'];
-    left_dir_2 = [FOLDERDIR_left '\' num2str(input_index,'%010i') '.png'];
-    right_dir_2 = [FOLDERDIR_right '\' num2str(input_index,'%010i') '.png'];
+    if isunix
+        left_dir = [FOLDERDIR_left '/' num2str(input_index-1,'%010i') '.png'];
+        right_dir = [FOLDERDIR_right '/' num2str(input_index-1,'%010i') '.png'];
+        left_dir_2 = [FOLDERDIR_left '/' num2str(input_index,'%010i') '.png'];
+        right_dir_2 = [FOLDERDIR_right '/' num2str(input_index,'%010i') '.png'];
+    else
+        left_dir = [FOLDERDIR_left '\' num2str(input_index-1,'%010i') '.png'];
+        right_dir = [FOLDERDIR_right '\' num2str(input_index-1,'%010i') '.png'];
+        left_dir_2 = [FOLDERDIR_left '\' num2str(input_index,'%010i') '.png'];
+        right_dir_2 = [FOLDERDIR_right '\' num2str(input_index,'%010i') '.png'];
+    end
     % Img_left and Img_right refer to the left and right images
     Img_left = imread(left_dir);
     Img_right = imread(right_dir);
@@ -607,7 +624,11 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     % inliers (green) and outliers (red)
     figure(1)
     clf;
-    IL1 = imread([FOLDERDIR_left '\' num2str(input_index-1,'%010i') '.png']);
+    if isunix
+        IL1 = imread([FOLDERDIR_left '/' num2str(input_index-1,'%010i') '.png']);
+    else
+        IL1 = imread([FOLDERDIR_left '\' num2str(input_index-1,'%010i') '.png']);
+    end
     imshow(IL1);
     hold on;
     for k=1:num_points
@@ -622,7 +643,15 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     figure(2)
     hold on;
     startaxis = [0.1 0 0 0; 0 0.1 0 0; 0 0 0.1 0; 1 1 1 1];
-    curraxis = inv(T)*startaxis;
+    curraxis = T\startaxis;
+    %rotate from vehicle pov to map view
+    ry = [0, 0, 1;
+          0, 1, 0;
+          -1, 0, 0];%rotate -90 deg around y
+    rz = [0, 1, 0;
+          -1, 0, 0;
+          0, 0, 1];%rotate -90 deg around z
+    curraxis = [ry*rz,[0;0;0];0, 0, 0, 1] * curraxis;
     plot3( [curraxis(1,1) curraxis(1,4)], [curraxis(2,1) curraxis(2,4)], [curraxis(3,1) curraxis(3,4)], 'r-' );
     plot3( [curraxis(1,2) curraxis(1,4)], [curraxis(2,2) curraxis(2,4)], [curraxis(3,2) curraxis(3,4)], 'g-' );
     plot3( [curraxis(1,3) curraxis(1,4)], [curraxis(2,3) curraxis(2,4)], [curraxis(3,3) curraxis(3,4)], 'b-' );
@@ -634,6 +663,38 @@ end % end of pose estimation loop
     figure(2);
     xlabel('x'); ylabel('y'); zlabel('z');
     title('motion of camera frame');
+    if isunix
+        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0005_sync/oxts/data';
+    else
+        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0005_sync\oxts\data';
+    end
+
+    if isunix
+        num_oxts = size(dir([FOLDERDIR '/*.txt']) ,1);
+    else
+        num_oxts = size(dir([FOLDERDIR '\*.txt']) ,1);
+    end
+
+    oxts = cell(1,num_oxts);
+
+    for index = 1:num_oxts-1
+        if isunix
+            oxts{index} = load([FOLDERDIR '/' num2str(index-1,'%010i') '.txt']);
+        else
+            oxts{index} = load([FOLDERDIR '\' num2str(index-1,'%010i') '.txt']);
+        end
+    end
+
+    transformation = convertOxtsToPose(oxts);
+    startaxis = [0.1 0 0 0; 0 0.1 0 0; 0 0 0.1 0; 1 1 1 1];
+    for index = 1:length(transformation)
+        curraxis = transformation{index}*startaxis;
+        plot3( [curraxis(1,1) curraxis(1,4)], [curraxis(2,1) curraxis(2,4)], [curraxis(3,1) curraxis(3,4)], 'r-' );
+        plot3( [curraxis(1,2) curraxis(1,4)], [curraxis(2,2) curraxis(2,4)], [curraxis(3,2) curraxis(3,4)], 'g-' );
+        plot3( [curraxis(1,3) curraxis(1,4)], [curraxis(2,3) curraxis(2,4)], [curraxis(3,3) curraxis(3,4)], 'b-' );
+
+    end
+    axis equal;
     %print -dpng ass3_motion.png
 
 
