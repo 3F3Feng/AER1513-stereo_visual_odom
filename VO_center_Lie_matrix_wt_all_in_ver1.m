@@ -23,7 +23,7 @@
 close all;
 clear;
 clc;
-
+% Add data folder to path in MATLAB
 % Enter the image folder directory (manully)
 if isunix
     FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0005_sync/image_00/data';
@@ -470,7 +470,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
                     ( baseline./(ul_next-ur_next) ) .* ( ((vl_next + vr_next) ./2) - cv ) ...
                     baseline .* focal ./ (ul_next - ur_next) ]'; % the cloud for next frame
 
-%% Pose estimation using SVD Point Cloud Alignment (i.e. Scalar-weighted)
+% Pose estimation using SVD Point Cloud Alignment (i.e. Scalar-weighted)
                 
     % Step 2: Using RANSAC to calculate the motion % {reference: T.Barfoot AER521 A3}
     maxinliers = 0;
@@ -494,7 +494,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
         % count inliers
         e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
         reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
-        inliers = find(reproj < 0.01);
+        inliers = find(reproj < 0.04);
         ninliers = size(inliers,2);
         if ninliers > maxinliers
             maxinliers = ninliers;
@@ -502,9 +502,17 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
             p1inliers = Pt_cloud_cur(:,inliers);
             p2inliers = Pt_cloud_next(:,inliers);
         end
-
-    end % End of while loop of the RANSAC process      
-  
+    end % End of while loop of the RANSAC process  
+    
+    % RANSAC improvement
+    [C,r] = compute_motion_SVD(p1inliers,p2inliers);
+    e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
+    reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
+    inliers = find(reproj < 0.009);
+    maxinliers = size(inliers,2);
+    ransacrcd(:,input_index) = [maxinliers,num_points,iter];
+    [maxinliers,num_points,iter]
+    
     % recompute the incremental motion using all the inliers from the
     % best motion hypothesis
     [C,r] = compute_motion_SVD(p1inliers,p2inliers);
@@ -512,7 +520,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     % update global transform
     %T = [ C -C*r; 0 0 0 1]*T; % T is the transform matrix from current to next
 
-%% Pose estimation using nonlinear optimization (AER 1513) ...
+% Pose estimation using nonlinear optimization (AER 1513) ...
 % This method is an iterative method using Lie group and Lie algebra    
     
     % Define measurement uncertainty (i.e. image plane uncertainty):
@@ -599,15 +607,14 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     T = [ C -C*r; 0 0 0 1] * T; % T is the transform matrix from current to next
 
     
-%% Recore results and generating plots
+% Recore results and generating plots
 
     % Store the transformation matrix to the storage variable
     Tfi{input_index} = T;
         
     % update distance travelled
     d(input_index) = sqrt(T(1:3,4)'*T(1:3,4));
-    d(input_index)
-    sqrt(sum(err_term.^2))
+    %sqrt(sum(err_term.^2))
 
     % Plot the output point clouds (transformed and projected)
     %{
@@ -687,7 +694,7 @@ end % end of pose estimation loop
 
     transformation = convertOxtsToPose(oxts);
     startaxis = [0.1 0 0 0; 0 0.1 0 0; 0 0 0.1 0; 1 1 1 1];
-    for index = 1:length(transformation)
+    for index = 1:length(transformation)-1
         curraxis = transformation{index}*startaxis;
         plot3( [curraxis(1,1) curraxis(1,4)], [curraxis(2,1) curraxis(2,4)], [curraxis(3,1) curraxis(3,4)], 'r-' );
         plot3( [curraxis(1,2) curraxis(1,4)], [curraxis(2,2) curraxis(2,4)], [curraxis(3,2) curraxis(3,4)], 'g-' );
@@ -696,7 +703,9 @@ end % end of pose estimation loop
     end
     axis equal;
     %print -dpng ass3_motion.png
-
+    
+    figure(3);
+    plot(ransacrcd(1,:)./ransacrcd(2,:));
 
     % To save necessary variables
     % save('0005_workspace.mat', 'between_order_match_coor', ...
