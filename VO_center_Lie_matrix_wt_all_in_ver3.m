@@ -219,7 +219,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     disparity_threst_far = 7; % 7 pixels is approximately 55 m away from the camera, 5 pix -> 78 m, 6 pix -> 65 m 
     % Criterion 4:
     % remove the pairs of points that are too 'close' to the camera
-    disparity_threst_close = 77; % 77 pixels is approximately 5 m away from the camera, 6m->65pix, 10m->39 
+    disparity_threst_close = 100; % 77 pixels is approximately 5 m away from the camera, 6m->65pix, 10m->39 
 
     disparity_bool_cur = (matchedPts1(:,3) < disparity_threst_far) | (matchedPts1(:,3) > disparity_threst_close);
     disparity_bool_next = (matchedPts3(:,3) < disparity_threst_far) | (matchedPts3(:,3) > disparity_threst_close);
@@ -479,7 +479,10 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     p2inliers = [];
     itermax = 100000;
     iter = 0;
-
+    image_sapce_distance = ((ul_cur - ul_next).^2 + (vl_cur - vl_next).^2).^(1/2);
+    
+    image_dis_20 = image_sapce_distance' > prctile(image_sapce_distance,20);
+    image_dis_90 = image_sapce_distance' < prctile(image_sapce_distance,90);
     %while iter < itermax && maxinliers < (1/3) * num_points
     while iter < itermax && maxinliers < 0.5 * num_points
 
@@ -495,7 +498,11 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
         % count inliers
         e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
         reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
-        inliers = find(reproj < 0.04);
+        
+        image_sapce_distance = ((ul_cur - ul_next).^2 + (vl_cur - vl_next).^2).^(1/2);
+        inliers = find(reproj < 0.01 & ...
+        image_dis_20 &...
+        image_dis_90);
         ninliers = size(inliers,2);
         if ninliers > maxinliers
             maxinliers = ninliers;
@@ -509,23 +516,25 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     [C,r] = compute_motion_SVD(p1inliers,p2inliers);
     e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
     reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
-    inliers = find(reproj < 0.01);
+    inliers = find(reproj < 0.01 & ...
+        image_dis_20 &...
+        image_dis_90);
     ninliers = size(inliers,2);
     maxinliers = size(inliers,2);
     bestinliers = inliers; %pt index of the inliers are stored here
     p1inliers = Pt_cloud_cur(:,inliers);
     p2inliers = Pt_cloud_next(:,inliers);
     
-    [C,r] = compute_motion_SVD(p1inliers,p2inliers);
-    e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
-    reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
-    inliers = find(reproj < 0.005);
-    ninliers = size(inliers,2);
-    maxinliers = size(inliers,2);
-    bestinliers = inliers; %pt index of the inliers are stored here
-    p1inliers = Pt_cloud_cur(:,inliers);
-    p2inliers = Pt_cloud_next(:,inliers);
-    
+%     [C,r] = compute_motion_SVD(p1inliers,p2inliers);
+%     e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
+%     reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
+%     inliers = find(reproj < 0.004 & image_sapce_distance' > 10);
+%     ninliers = size(inliers,2);
+%     maxinliers = size(inliers,2);
+%     bestinliers = inliers; %pt index of the inliers are stored here
+%     p1inliers = Pt_cloud_cur(:,inliers);
+%     p2inliers = Pt_cloud_next(:,inliers);
+%     
     
     ransacrcd(:,input_index) = [maxinliers,num_points,iter];
     [maxinliers,num_points,iter] 
@@ -660,6 +669,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
         set(plot( [ul_cur(k) ul_next(k)], [vl_cur(k) vl_next(k)], 'r-' ), 'LineWidth', 2);
         set(plot( ul_next(k), vl_next(k), 'ro' ), 'LineWidth', 1);
         text(ul_next(k), vl_next(k),num2str(reproj(k)));
+        text(ul_next(k), vl_next(k)+5,num2str(image_sapce_distance(k)));
     end
     for k=1:maxinliers
         set(plot( [ul_cur(bestinliers(k)) ul_next(bestinliers(k))], [vl_cur(bestinliers(k)) vl_next(bestinliers(k))], 'g-' ), 'LineWidth', 2);
