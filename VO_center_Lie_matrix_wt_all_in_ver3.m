@@ -26,11 +26,11 @@ clc;
 % Add data folder to path in MATLAB
 % Enter the image folder directory (manully)
 if isunix
-    FOLDERDIR_left =  '2011_09_26_drive_0005_sync/2011_09_26/2011_09_26_drive_0005_sync/image_00/data';
-    FOLDERDIR_right = '2011_09_26_drive_0005_sync/2011_09_26/2011_09_26_drive_0005_sync/image_01/data';
+    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0005_sync/image_00/data';
+    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0005_sync/image_01/data';
 else
-    FOLDERDIR_left =  'F:\Course Document\MASc Second Year\MASc 2019 Fall\AER1513\Project\Data_and_Code\2011_09_26_drive_0005_sync\2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
-    FOLDERDIR_right = 'F:\Course Document\MASc Second Year\MASc 2019 Fall\AER1513\Project\Data_and_Code\2011_09_26_drive_0005_sync\2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
+    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
+    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
 end
 
 % Count the number of images within the directories
@@ -495,7 +495,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
         % count inliers
         e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
         reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
-        inliers = find(reproj < 0.01);
+        inliers = find(reproj < 0.04);
         ninliers = size(inliers,2);
         if ninliers > maxinliers
             maxinliers = ninliers;
@@ -511,12 +511,21 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
     inliers = find(reproj < 0.01);
     ninliers = size(inliers,2);
-    if ninliers > maxinliers
-        maxinliers = size(inliers,2);
-        bestinliers = inliers; %pt index of the inliers are stored here
-        p1inliers = Pt_cloud_cur(:,inliers);
-        p2inliers = Pt_cloud_next(:,inliers);
-    end
+    maxinliers = size(inliers,2);
+    bestinliers = inliers; %pt index of the inliers are stored here
+    p1inliers = Pt_cloud_cur(:,inliers);
+    p2inliers = Pt_cloud_next(:,inliers);
+    
+    [C,r] = compute_motion_SVD(p1inliers,p2inliers);
+    e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
+    reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
+    inliers = find(reproj < 0.005);
+    ninliers = size(inliers,2);
+    maxinliers = size(inliers,2);
+    bestinliers = inliers; %pt index of the inliers are stored here
+    p1inliers = Pt_cloud_cur(:,inliers);
+    p2inliers = Pt_cloud_next(:,inliers);
+    
     
     ransacrcd(:,input_index) = [maxinliers,num_points,iter];
     [maxinliers,num_points,iter] 
@@ -650,6 +659,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     for k=1:num_points
         set(plot( [ul_cur(k) ul_next(k)], [vl_cur(k) vl_next(k)], 'r-' ), 'LineWidth', 2);
         set(plot( ul_next(k), vl_next(k), 'ro' ), 'LineWidth', 1);
+        text(ul_next(k), vl_next(k),num2str(reproj(k)));
     end
     for k=1:maxinliers
         set(plot( [ul_cur(bestinliers(k)) ul_next(bestinliers(k))], [vl_cur(bestinliers(k)) vl_next(bestinliers(k))], 'g-' ), 'LineWidth', 2);
@@ -685,9 +695,9 @@ end % end of pose estimation loop
     xlabel('x'); ylabel('y'); zlabel('z');
     title('motion of camera frame');
     if isunix
-        FOLDERDIR =  '2011_09_26_drive_0005_sync/2011_09_26/2011_09_26_drive_0005_sync/oxts/data';
+        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0005_sync/oxts/data';
     else
-        FOLDERDIR =  'F:\Course Document\MASc Second Year\MASc 2019 Fall\AER1513\Project\Data_and_Code\2011_09_26_drive_0005_sync\2011_09_26\2011_09_26_drive_0005_sync\oxts\data';
+        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0005_sync\oxts\data';
     end
 
     if isunix
@@ -706,7 +716,7 @@ end % end of pose estimation loop
         end
     end
 
-    transformation = convertOxtsToPose_VO(oxts);
+    transformation = convertOxtsToPose(oxts);
     startaxis = [0.1 0 0 0; 0 0.1 0 0; 0 0 0.1 0; 1 1 1 1];
     for index = 1:length(transformation)-1
         curraxis = transformation{index}*startaxis;

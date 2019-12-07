@@ -404,7 +404,7 @@ end % End the for loop for data association
 %% Pose estimation using SVD Point Cloud Alignment (i.e. Scalar-weighted)
 % Note: we are using the center camera model here
 % All weights are assumed to be 1 for all features
-close all;
+% close all;
 
 % Input camera parameters (from calibration file)
 baseline = 0.537;    % baseline [m]
