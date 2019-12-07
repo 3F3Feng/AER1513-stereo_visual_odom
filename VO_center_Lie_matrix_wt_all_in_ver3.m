@@ -26,11 +26,11 @@ clc;
 % Add data folder to path in MATLAB
 % Enter the image folder directory (manully)
 if isunix
-    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0005_sync/image_00/data';
-    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0005_sync/image_01/data';
+    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0095_sync/image_00/data';
+    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0095_sync/image_01/data';
 else
-    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
-    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
+    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0095_sync\image_00\data';
+    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0095_sync\image_01\data';
 end
 
 % Count the number of images within the directories
@@ -525,16 +525,6 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     p1inliers = Pt_cloud_cur(:,inliers);
     p2inliers = Pt_cloud_next(:,inliers);
     
-%     [C,r] = compute_motion_SVD(p1inliers,p2inliers);
-%     e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
-%     reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
-%     inliers = find(reproj < 0.004 & image_sapce_distance' > 10);
-%     ninliers = size(inliers,2);
-%     maxinliers = size(inliers,2);
-%     bestinliers = inliers; %pt index of the inliers are stored here
-%     p1inliers = Pt_cloud_cur(:,inliers);
-%     p2inliers = Pt_cloud_next(:,inliers);
-%     
     
     ransacrcd(:,input_index) = [maxinliers,num_points,iter];
     [maxinliers,num_points,iter] 
@@ -705,9 +695,9 @@ end % end of pose estimation loop
     xlabel('x'); ylabel('y'); zlabel('z');
     title('motion of camera frame');
     if isunix
-        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0005_sync/oxts/data';
+        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0095_sync/oxts/data';
     else
-        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0005_sync\oxts\data';
+        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0095_sync\oxts\data';
     end
 
     if isunix
@@ -745,6 +735,3 @@ end % end of pose estimation loop
     % save('0005_workspace.mat', 'between_order_match_coor', ...
     %    'between_order_indices', 'within_match_order_fea_left', ...
     %        'within_match_order_fea_right');
-        
-        
-        
