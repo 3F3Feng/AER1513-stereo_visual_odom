@@ -26,11 +26,11 @@ clc;
 % Add data folder to path in MATLAB
 % Enter the image folder directory (manully)
 if isunix
-    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0095_sync/image_00/data';
-    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0095_sync/image_01/data';
+    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0048_sync/image_00/data';
+    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0048_sync/image_01/data';
 else
-    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0095_sync\image_00\data';
-    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0095_sync\image_01\data';
+    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0048_sync\image_00\data';
+    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0048_sync\image_01\data';
 end
 
 % Count the number of images within the directories
@@ -219,7 +219,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     disparity_threst_far = 7; % 7 pixels is approximately 55 m away from the camera, 5 pix -> 78 m, 6 pix -> 65 m 
     % Criterion 4:
     % remove the pairs of points that are too 'close' to the camera
-    disparity_threst_close = 100; % 77 pixels is approximately 5 m away from the camera, 6m->65pix, 10m->39 
+    disparity_threst_close = 65; % 77 pixels is approximately 5 m away from the camera, 6m->65pix, 10m->39 
 
     disparity_bool_cur = (matchedPts1(:,3) < disparity_threst_far) | (matchedPts1(:,3) > disparity_threst_close);
     disparity_bool_next = (matchedPts3(:,3) < disparity_threst_far) | (matchedPts3(:,3) > disparity_threst_close);
@@ -500,7 +500,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
         reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
         
         image_sapce_distance = ((ul_cur - ul_next).^2 + (vl_cur - vl_next).^2).^(1/2);
-        inliers = find(reproj < 0.01 & ...
+        inliers = find(reproj < 0.04 & ...
         image_dis_20 &...
         image_dis_90);
         ninliers = size(inliers,2);
@@ -516,7 +516,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     [C,r] = compute_motion_SVD(p1inliers,p2inliers);
     e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
     reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
-    inliers = find(reproj < 0.01 & ...
+    inliers = find(reproj < 0.02 & ...
         image_dis_20 &...
         image_dis_90);
     ninliers = size(inliers,2);
@@ -695,9 +695,9 @@ end % end of pose estimation loop
     xlabel('x'); ylabel('y'); zlabel('z');
     title('motion of camera frame');
     if isunix
-        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0095_sync/oxts/data';
+        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0048_sync/oxts/data';
     else
-        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0095_sync\oxts\data';
+        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0048_sync\oxts\data';
     end
 
     if isunix
@@ -708,7 +708,7 @@ end % end of pose estimation loop
 
     oxts = cell(1,num_oxts);
 
-    for index = 1:num_oxts-1
+    for index = 1:num_oxts
         if isunix
             oxts{index} = load([FOLDERDIR '/' num2str(index-1,'%010i') '.txt']);
         else
@@ -718,7 +718,7 @@ end % end of pose estimation loop
 
     transformation = convertOxtsToPose(oxts);
     startaxis = [0.1 0 0 0; 0 0.1 0 0; 0 0 0.1 0; 1 1 1 1];
-    for index = 1:length(transformation)-1
+    for index = 1:length(transformation)
         curraxis = transformation{index}*startaxis;
         plot3( [curraxis(1,1) curraxis(1,4)], [curraxis(2,1) curraxis(2,4)], [curraxis(3,1) curraxis(3,4)], 'r-' );
         plot3( [curraxis(1,2) curraxis(1,4)], [curraxis(2,2) curraxis(2,4)], [curraxis(3,2) curraxis(3,4)], 'g-' );
@@ -730,7 +730,8 @@ end % end of pose estimation loop
     
     figure(3);
     plot(ransacrcd(1,:)./ransacrcd(2,:));
-
+    
+    E = sqrt(sum((transformation{index}*[0;0;0;1] - [ry*rz,[0;0;0];0, 0, 0, 1]*(Tfi{index-1}\[0;0;0;1])).^2))/d(index-1)
     % To save necessary variables
     % save('0005_workspace.mat', 'between_order_match_coor', ...
     %    'between_order_indices', 'within_match_order_fea_left', ...
