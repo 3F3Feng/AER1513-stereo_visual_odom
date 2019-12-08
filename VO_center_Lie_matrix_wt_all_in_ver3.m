@@ -26,11 +26,11 @@ clc;
 % Add data folder to path in MATLAB
 % Enter the image folder directory (manully)
 if isunix
-    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0048_sync/image_00/data';
-    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0048_sync/image_01/data';
+    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0005_sync/image_00/data';
+    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0005_sync/image_01/data';
 else
-    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0048_sync\image_00\data';
-    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0048_sync\image_01\data';
+    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
+    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
 end
 
 % Count the number of images within the directories
@@ -695,9 +695,9 @@ end % end of pose estimation loop
     xlabel('x'); ylabel('y'); zlabel('z');
     title('motion of camera frame');
     if isunix
-        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0048_sync/oxts/data';
+        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0005_sync/oxts/data';
     else
-        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0048_sync\oxts\data';
+        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0005_sync\oxts\data';
     end
 
     if isunix
@@ -723,9 +723,9 @@ end % end of pose estimation loop
         plot3( [curraxis(1,1) curraxis(1,4)], [curraxis(2,1) curraxis(2,4)], [curraxis(3,1) curraxis(3,4)], 'r-' );
         plot3( [curraxis(1,2) curraxis(1,4)], [curraxis(2,2) curraxis(2,4)], [curraxis(3,2) curraxis(3,4)], 'g-' );
         plot3( [curraxis(1,3) curraxis(1,4)], [curraxis(2,3) curraxis(2,4)], [curraxis(3,3) curraxis(3,4)], 'b-' );
-
     end
     axis equal;
+
     %print -dpng ass3_motion.png
     
     figure(3);
