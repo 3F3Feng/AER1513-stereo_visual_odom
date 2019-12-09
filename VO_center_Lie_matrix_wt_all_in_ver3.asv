@@ -26,11 +26,11 @@ clc;
 % Add data folder to path in MATLAB
 % Enter the image folder directory (manully)
 if isunix
-    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0009_sync/image_00/data';
-    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0009_sync/image_01/data';
+    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0048_sync/image_00/data';
+    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0048_sync/image_01/data';
 else
-    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0009_sync\image_00\data';
-    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0009_sync\image_01\data';
+    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0048_sync\image_00\data';
+    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0048_sync\image_01\data';
 end
 
 % Count the number of images within the directories
@@ -481,7 +481,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     iter = 0;
     image_sapce_distance = ((ul_cur - ul_next).^2 + (vl_cur - vl_next).^2).^(1/2);
     
-    image_dis_10 = image_sapce_distance' > prctile(image_sapce_distance,10);
+    image_dis_20 = image_sapce_distance' > prctile(image_sapce_distance,20);
     image_dis_90 = image_sapce_distance' < prctile(image_sapce_distance,90);
     %while iter < itermax && maxinliers < (1/3) * num_points
     while iter < itermax && maxinliers < 0.5 * num_points
@@ -501,7 +501,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
         
         image_sapce_distance = ((ul_cur - ul_next).^2 + (vl_cur - vl_next).^2).^(1/2);
         inliers = find(reproj < 0.04 & ...
-        image_dis_10 &...
+        image_dis_20 &...
         image_dis_90);
         ninliers = size(inliers,2);
         if ninliers > maxinliers
@@ -517,7 +517,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     e = Pt_cloud_next - C*(Pt_cloud_cur - r*ones(1,num_points));            
     reproj = sum(e.*e,1); % here, we ignore the 0.5 before the e^2
     inliers = find(reproj < 0.02 & ...
-        image_dis_10 &...
+        image_dis_20 &...
         image_dis_90);
     ninliers = size(inliers,2);
     maxinliers = size(inliers,2);
@@ -695,9 +695,9 @@ end % end of pose estimation loop
     xlabel('x'); ylabel('y'); zlabel('z');
     title('motion of camera frame');
     if isunix
-        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0009_sync/oxts/data';
+        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0048_sync/oxts/data';
     else
-        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0009_sync\oxts\data';
+        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0048_sync\oxts\data';
     end
 
     if isunix
@@ -723,21 +723,9 @@ end % end of pose estimation loop
         plot3( [curraxis(1,1) curraxis(1,4)], [curraxis(2,1) curraxis(2,4)], [curraxis(3,1) curraxis(3,4)], 'r-' );
         plot3( [curraxis(1,2) curraxis(1,4)], [curraxis(2,2) curraxis(2,4)], [curraxis(3,2) curraxis(3,4)], 'g-' );
         plot3( [curraxis(1,3) curraxis(1,4)], [curraxis(2,3) curraxis(2,4)], [curraxis(3,3) curraxis(3,4)], 'b-' );
-        curraxis = Tfi{index}\startaxis;
-    %rotate from vehicle pov to map view
-    ry = [0, 0, 1;
-          0, 1, 0;
-          -1, 0, 0];%rotate -90 deg around y
-    rz = [0, 1, 0;
-          -1, 0, 0;
-          0, 0, 1];%rotate -90 deg around z
-    curraxis = [ry*rz,[0;0;0];0, 0, 0, 1] * curraxis;
-    plot3( [curraxis(1,1) curraxis(1,4)], [curraxis(2,1) curraxis(2,4)], [curraxis(3,1) curraxis(3,4)], 'r-' );
-    plot3( [curraxis(1,2) curraxis(1,4)], [curraxis(2,2) curraxis(2,4)], [curraxis(3,2) curraxis(3,4)], 'g-' );
-    plot3( [curraxis(1,3) curraxis(1,4)], [curraxis(2,3) curraxis(2,4)], [curraxis(3,3) curraxis(3,4)], 'b-' );
-    axis equal;
     end
     axis equal;
+
     %print -dpng ass3_motion.png
     
     figure(3);
