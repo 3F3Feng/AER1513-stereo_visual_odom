@@ -657,13 +657,13 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     hold on;
     for k=1:num_points
         set(plot( [ul_cur(k) ul_next(k)], [vl_cur(k) vl_next(k)], 'r-' ), 'LineWidth', 2);
-        set(plot( ul_next(k), vl_next(k), 'ro' ), 'LineWidth', 1);
+        set(plot( ul_cur(k), vl_cur(k), 'ro' ), 'LineWidth', 1);
         text(ul_next(k), vl_next(k),num2str(reproj(k)));
-        text(ul_next(k), vl_next(k)+12,num2str(image_sapce_distance(k)));
+        text(ul_next(k), vl_next(k),num2str(image_sapce_distance(k)));
     end
     for k=1:maxinliers
         set(plot( [ul_cur(bestinliers(k)) ul_next(bestinliers(k))], [vl_cur(bestinliers(k)) vl_next(bestinliers(k))], 'g-' ), 'LineWidth', 2);
-        set(plot( ul_next(bestinliers(k)), vl_next(bestinliers(k)), 'go' ), 'LineWidth', 1);
+        set(plot( ul_cur(bestinliers(k)), vl_cur(bestinliers(k)), 'go' ), 'LineWidth', 1);
     end
     % draw a 1/3 section lines in the image
         set(plot( [round(1/3*size(IL1,2)) round(1/3*size(IL1,2))], [0 size(IL1,1)], 'b-' ), 'LineWidth', 0.8);
