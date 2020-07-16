@@ -25,12 +25,13 @@ clear;
 clc;
 % Add data folder to path in MATLAB
 % Enter the image folder directory (manully)
+image_serie = '0095';
 if isunix
-    FOLDERDIR_left =  '2011_09_26/2011_09_26_drive_0005_sync/image_00/data';
-    FOLDERDIR_right = '2011_09_26/2011_09_26_drive_0005_sync/image_01/data';
+    FOLDERDIR_left =  join(['2011_09_26/2011_09_26_drive_', image_serie, '_sync/image_00/data']);
+    FOLDERDIR_right = join(['2011_09_26/2011_09_26_drive_', image_serie, '_sync/image_01/data']);
 else
-    FOLDERDIR_left =  '2011_09_26\2011_09_26_drive_0005_sync\image_00\data';
-    FOLDERDIR_right = '2011_09_26\2011_09_26_drive_0005_sync\image_01\data';
+    FOLDERDIR_left =  join(['2011_09_26\2011_09_26_drive_', image_serie, '_sync\image_00\data']);
+    FOLDERDIR_right = join(['2011_09_26\2011_09_26_drive_', image_serie, '_sync\image_01\data']);
 end
 
 % Count the number of images within the directories
@@ -657,17 +658,17 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
     hold on;
     for k=1:num_points
         set(plot( [ul_cur(k) ul_next(k)], [vl_cur(k) vl_next(k)], 'r-' ), 'LineWidth', 2);
-        set(plot( ul_next(k), vl_next(k), 'ro' ), 'LineWidth', 1);
-        text(ul_next(k), vl_next(k),num2str(reproj(k)));
-        text(ul_next(k), vl_next(k)+12,num2str(image_sapce_distance(k)));
+        set(plot( ul_cur(k), vl_cur(k), 'ro' ), 'LineWidth', 1);
+        text(ul_cur(k), vl_cur(k),num2str(reproj(k)));
+%         text(ul_cur(k), vl_cur(k)+8,num2str(image_sapce_distance(k)));
     end
     for k=1:maxinliers
         set(plot( [ul_cur(bestinliers(k)) ul_next(bestinliers(k))], [vl_cur(bestinliers(k)) vl_next(bestinliers(k))], 'g-' ), 'LineWidth', 2);
-        set(plot( ul_next(bestinliers(k)), vl_next(bestinliers(k)), 'go' ), 'LineWidth', 1);
+        set(plot( ul_cur(bestinliers(k)), vl_cur(bestinliers(k)), 'go' ), 'LineWidth', 1);
     end
-    % draw a 1/3 section lines in the image
-        set(plot( [round(1/3*size(IL1,2)) round(1/3*size(IL1,2))], [0 size(IL1,1)], 'b-' ), 'LineWidth', 0.8);
-        set(plot( [round(2/3*size(IL1,2)) round(2/3*size(IL1,2))], [0 size(IL1,1)], 'b-' ), 'LineWidth', 0.8);  
+%     % draw a 1/3 section lines in the image
+%         set(plot( [round(1/3*size(IL1,2)) round(1/3*size(IL1,2))], [0 size(IL1,1)], 'b-' ), 'LineWidth', 0.8);
+%         set(plot( [round(2/3*size(IL1,2)) round(2/3*size(IL1,2))], [0 size(IL1,1)], 'b-' ), 'LineWidth', 0.8);  
     
     % this figure plots the camera reference frame as it moves through
     % the world - try rotating in 3D to see the full motion
@@ -695,9 +696,9 @@ end % end of pose estimation loop
     xlabel('x'); ylabel('y'); zlabel('z');
     title('motion of camera frame');
     if isunix
-        FOLDERDIR =  '2011_09_26/2011_09_26_drive_0005_sync/oxts/data';
+        FOLDERDIR =  join(['2011_09_26/2011_09_26_drive_', image_serie,'_sync/oxts/data']);
     else
-        FOLDERDIR =  '2011_09_26\2011_09_26_drive_0005_sync\oxts\data';
+        FOLDERDIR =  join(['2011_09_26\2011_09_26_drive_', image_serie,'_sync\oxts\data']);
     end
 
     if isunix

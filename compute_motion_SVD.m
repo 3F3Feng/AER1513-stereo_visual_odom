@@ -46,5 +46,3 @@ function [C, r] = compute_motion_SVD( p1, p2 )
     % ------end of your motion-from-two-pointclouds algorithm-------
     
 end
-
-

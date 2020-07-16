@@ -86,5 +86,4 @@ function [matchedPts1, matchedPts2, fea_ord_1, fea_ord_2,err] = matchfeatures_SU
   
   %fea_ord_1 = features_1(cor1);
   %fea_ord_2 = features_2(cor2);
-  
 end
