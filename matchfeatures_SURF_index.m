@@ -85,5 +85,4 @@ function [matchedPts1, matchedPts2, ord_ind_1, ord_ind_2,err] = matchfeatures_SU
       matchedPts2(i,2) = features_2(cor2(i)).y; % Second column is y coor.
       ord_ind_2(i,1) = cor2(i);
   end
-
 end % end of function
