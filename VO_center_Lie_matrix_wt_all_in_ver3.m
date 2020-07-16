@@ -73,9 +73,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%% Data Association %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Loop through all the timesteps
+% Initiate wait bar
+f = waitbar(0, join(['Data Association (0/',string(num_imgfile_left-1), ')']));
 for input_index = 1:num_imgfile_left-1 % file name starts from 0
 
-    input_index
+    % Update wait bar
+    waitbar(double(input_index)/(num_imgfile_left-1), f, join(['Data Association (', string(input_index),'/', string(num_imgfile_left-1), ')']));
 
 % Step 1: Load the two stereo images (png images)
     if isunix
@@ -400,7 +403,7 @@ for input_index = 1:num_imgfile_left-1 % file name starts from 0
 
     
 end % End the for loop for data association    
-
+close(f);
 %%%%%%%%%%%%%%%%%%%%%  End of Data Association %%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 %%%%%%%%%%%%%%%%%%%%%%%%%% End of Stage 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -437,8 +440,6 @@ d = zeros(1,num_imgfile_left-1); % one travelling dis less than # timestamp
 
 % Loop throguh all the time steps to get the poses
 for input_index = 1:num_imgfile_left-1 % file name starts from 0
-
-    input_index
     
     % Read the between frame correspondences coordinates
     bet_Pts1 = between_order_match_coor{input_index}(:,1:2);
